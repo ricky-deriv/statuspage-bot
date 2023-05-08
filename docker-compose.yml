@@ -1,0 +1,7 @@
+version: '1.0.0'
+
+services:
+  statuspage-bot:
+    build: .
+    ports:
+      - "5000:5000"
