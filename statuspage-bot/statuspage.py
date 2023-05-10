@@ -28,3 +28,20 @@ def create_incident(name, status, body):
     except requests.exceptions.RequestException as err:
         message = f"Operation failed: {err}"
     return message
+
+def get_unresolved_incidents():
+    target_url = f"{URL}{PAGE_ID}/incidents/unresolved"
+    message = ""
+    try:
+        r = requests.get(target_url, headers=HEADERS)
+        result = r.json()
+        r.raise_for_status()
+        message = f"Total unresolved incidents: {len(result)}\n"
+        if (len(result) > 0): message += "\t-Incident name- \t-Status- \t-Last updated-\n"
+        for incident in result:
+            message += f"\n\t{incident['name']} \t{incident['status']} \t{incident['updated_at']}"
+    except requests.exceptions.HTTPError as err:
+        message = f"Operation failed: {r.text}"
+    except requests.exceptions.RequestException as err:
+        message = f"Operation failed: {err}"
+    return message

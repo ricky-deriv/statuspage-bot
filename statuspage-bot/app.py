@@ -16,8 +16,10 @@ def handle_app_mention_events(body, say):
     message_arr = body['event']['text'].split()
 
     if f"{message_arr[1]} {message_arr[2]}" == 'create incident':
-        global incident_id
         message = create_incident(message_arr[3], message_arr[4], message_arr[5])
+        say(message)
+    elif f"{message_arr[1]} {message_arr[2]}" == "get unresolved":
+        message = get_unresolved_incidents()
         say(message)
 
 if __name__ == "__main__":
