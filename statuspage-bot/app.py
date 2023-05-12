@@ -21,6 +21,9 @@ def handle_app_mention_events(body, say):
     elif f"{message_arr[1]} {message_arr[2]}" == "get unresolved":
         message = get_unresolved_incidents()
         say(message)
+    elif f"{message_arr[1]} {message_arr[2]}" == "get incident":
+        message = get_incident(message_arr[3])
+        say(message)
 
 if __name__ == "__main__":
     SocketModeHandler(app, SLACK_APP_TOKEN).start()

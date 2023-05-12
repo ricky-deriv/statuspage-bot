@@ -39,7 +39,26 @@ def get_unresolved_incidents():
         message = f"Total unresolved incidents: {len(result)}\n"
         if (len(result) > 0): message += "\t-Incident name- \t-Status- \t-Last updated-\n"
         for incident in result:
-            message += f"\n\t{incident['name']} \t{incident['status']} \t{incident['updated_at']}"
+            message += f"\n\t{incident['name']} \t{incident['status']} \t{incident['updated_at']} \t{incident['id']}"
+    except requests.exceptions.HTTPError as err:
+        message = f"Operation failed: {r.text}"
+    except requests.exceptions.RequestException as err:
+        message = f"Operation failed: {err}"
+    return message
+
+def get_incident(incident_id):
+    target_url = f"{URL}{PAGE_ID}/incidents/{incident_id}"
+    message = ""
+    try:
+        r = requests.get(target_url, headers=HEADERS)
+        result = r.json()
+        r.raise_for_status()
+        message = (f"Incident: {result['name']}"
+            f"\n\tstatus: {result['status']}"
+            f"\n\tcreated at: {result['created_at']}"
+            f"\n\tupdated at: {result['updated_at']}")
+        for component in result['components']:
+            message += f"\n\t\tcomponent: {component['name']} -> {component['status']}"
     except requests.exceptions.HTTPError as err:
         message = f"Operation failed: {r.text}"
     except requests.exceptions.RequestException as err:
