@@ -22,7 +22,7 @@ def create_incident(name, status, body):
         r = requests.post(target_url, headers=HEADERS, json=data)
         result = r.json()
         r.raise_for_status()
-        message = f"Incident {result['name']} created"
+        message = f"Incident: {result['name']} is created. \nstatus: {result['status']}"
     except requests.exceptions.HTTPError as err:
         message = f"Operation failed: {r.text}"
     except requests.exceptions.RequestException as err:
@@ -37,7 +37,7 @@ def get_unresolved_incidents():
         result = r.json()
         r.raise_for_status()
         message = f"Total unresolved incidents: {len(result)}\n"
-        if (len(result) > 0): message += "\t-Incident name- \t-Status- \t-Last updated-\n"
+        if (len(result) > 0): message += "\t-Incident name- \t-Status- \t-Last updated- \t-Channel ID- \n"
         for incident in result:
             message += f"\n\t{incident['name']} \t{incident['status']} \t{incident['updated_at']} \t{incident['id']}"
     except requests.exceptions.HTTPError as err:
