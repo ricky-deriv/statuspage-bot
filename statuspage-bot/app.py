@@ -9,21 +9,122 @@ load_dotenv()
 SLACK_APP_TOKEN = os.getenv('SLACK_APP_TOKEN')
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
 
+# global arrays
+INCIDENT_STATUSES = ['investigating', 'identified', 'monitoring', 'resolved', 'scheduled', 'in_progress', 'verifying', 'completed']
+
 app = App(token=SLACK_BOT_TOKEN)
 
 @app.event("app_mention")
-def handle_app_mention_events(body, say):
+def handle_app_mention_events(body, say, client):
     message_arr = body['event']['text'].split()
+    print('new request...')
 
-    if f"{message_arr[1]} {message_arr[2]}" == 'create incident':
-        message = create_incident(message_arr[3], message_arr[4], message_arr[5])
-        say(message)
-    elif f"{message_arr[1]} {message_arr[2]}" == "get unresolved":
+    if f"{message_arr[1]} {message_arr[2]}" == "get unresolved":
         message = get_unresolved_incidents()
         say(message)
     elif f"{message_arr[1]} {message_arr[2]}" == "get incident":
         message = get_incident(message_arr[3])
         say(message)
+
+@app.shortcut("declare_incident")
+def declare_incident(ack, shortcut, client):
+    ack()
+    channel_id = shortcut['channel']['id']
+    form_create_incident = {
+        "type": "modal",
+        "callback_id": "form_create_incident",
+        "title": {"type": "plain_text", "text": "Create Incident"},
+        "close": {"type": "plain_text", "text": "Close"},
+        "submit": {"type": "plain_text", "text": "Submit"},
+        "private_metadata": f"{channel_id}",
+        "blocks": [
+            {
+                "type": "context",
+                "elements": [{"type": "plain_text", "text": "Creating incident in Deriv Statuspage"}]
+            },
+            {
+                "type": "input",
+                "block_id": "incident_name_input",
+                "element": {"type": "plain_text_input", "action_id": "incident_name_input"},
+                "label": {"type": "plain_text", "text": "Incident name"}
+            },
+            {
+                "type": "section",
+                "block_id": "static_select_action",
+                "text": {"type": "mrkdwn", "text": "Incident status:"},
+                "accessory": {
+                    "type": "static_select",
+                    "placeholder": {"type": "plain_text", "text": "Status"},
+                    "options": [],
+                    "action_id": "static_select_action"
+                }
+            },
+            {
+                "type": "input",
+                "block_id": "description_input",
+                "element": {"type": "plain_text_input", "action_id": "description_input", "multiline": True},
+                "label": {"type": "plain_text", "text": "Description"}
+            }
+        ]
+    }
+    if(check_allowed_trigger(shortcut['channel']['name'], shortcut['user']['id'], shortcut['message']['text'])):
+        print('yes, youre allwoed')
+        # access the view object and update the dropbox for incident status
+        index = 0
+        for block in form_create_incident['blocks']:
+            if ('accessory' in block):
+                if (block['accessory']['action_id'] == 'static_select_action'):
+                    for status in INCIDENT_STATUSES:
+                        form_create_incident['blocks'][index]['accessory']['options'].append({
+                            "text": {"type": "plain_text", "text": status},
+                            "value": status
+                        })
+            index += 1
+        # send the form
+        client.views_open(
+            trigger_id=shortcut["trigger_id"],
+            view=form_create_incident
+        )
+    else:
+        print('nope, not allowed')
+        client.views_open(
+        trigger_id=shortcut["trigger_id"],
+        view={
+            "type": "modal",
+            "title": {"type": "plain_text", "text": "Not allowed"},
+            "close": {"type": "plain_text", "text": "Close"},
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Accessed denied to create incident in status page."
+                    }
+                }
+            ]
+        }
+    )
+
+@app.view("form_create_incident")
+def post_incident(ack, body, client, view, say):
+    ack()
+    incident_name = view["state"]["values"]["incident_name_input"]["incident_name_input"]['value']
+    incident_status = view['state']['values']['static_select_action']['static_select_action']['selected_option']['text']['text']
+    incident_description = view['state']['values']['description_input']['description_input']['value']
+    channel_id = view["private_metadata"]
+    message = create_incident(incident_name, incident_status, incident_description)
+    say(f"{message}", channel = channel_id)
+
+def check_allowed_trigger(incident_name, slack_user_id, message):
+    # allow operation if 
+    #   channel name starts with incident
+    #   in the allowed user list
+    #   message contains the keywords
+    allowed_slack_users_id = ['U056F2PDN3G']
+    key_string = 'statuspage declare incident'
+    return True if (incident_name.startswith('incident') and slack_user_id in allowed_slack_users_id and message == key_string) else False
+    
+    
 
 if __name__ == "__main__":
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
