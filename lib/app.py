@@ -18,17 +18,16 @@ app = App(token=SLACK_BOT_TOKEN)
 @app.event("app_mention")
 def handle_app_mention_events(body, say, client):
     message_arr = body['event']['text'].split()
-    print('new request...')
+    command = " ".join(message_arr[1:3])
+    
+    commands = {
+        "get unresolved": get_unresolved_incidents,
+        "get incident": lambda: get_incident(message_arr[3]),
+        "update incident": lambda: update_incident(message_arr[3], message_arr[4], " ".join(message_arr[5:])),
+    }
 
-    if f"{message_arr[1]} {message_arr[2]}" == "get unresolved":
-        message = get_unresolved_incidents()
-        say(message)
-    elif f"{message_arr[1]} {message_arr[2]}" == "get incident":
-        message = get_incident(message_arr[3])
-        say(message)
-    elif f"{message_arr[1]} {message_arr[2]}" == "update incident":
-        body = ' '.join(message_arr[5:])
-        message = update_incident(message_arr[3], message_arr[4], body)
+    if command in commands:
+        message = commands[command]()
         say(message)
 
 @app.shortcut("declare_incident")
