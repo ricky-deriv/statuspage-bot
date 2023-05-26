@@ -1,0 +1,37 @@
+{
+    "type": "modal",
+    "callback_id": "form_create_incident",
+    "title": {"type": "plain_text", "text": "Create Incident"},
+    "close": {"type": "plain_text", "text": "Close"},
+    "submit": {"type": "plain_text", "text": "Submit"},
+    "private_metadata": "Insert channel id", 
+    "blocks": [
+        {
+            "type": "context",
+            "elements": [{"type": "plain_text", "text": "Creating incident in Deriv Statuspage"}]
+        },
+        {
+            "type": "input",
+            "block_id": "incident_name_input",
+            "element": {"type": "plain_text_input", "action_id": "incident_name_input"},
+            "label": {"type": "plain_text", "text": "Incident name"}
+        },
+        {
+            "type": "section",
+            "block_id": "static_select_action",
+            "text": {"type": "mrkdwn", "text": "Incident status:"},
+            "accessory": {
+                "type": "static_select",
+                "placeholder": {"type": "plain_text", "text": "Status"},
+                "options": [],
+                "action_id": "static_select_action"
+            }
+        },
+        {
+            "type": "input",
+            "block_id": "description_input",
+            "element": {"type": "plain_text_input", "action_id": "description_input", "multiline": true },
+            "label": {"type": "plain_text", "text": "Description"}
+        }
+    ]
+}
