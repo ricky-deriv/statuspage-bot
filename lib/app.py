@@ -24,6 +24,7 @@ def handle_app_mention_events(body, say, client):
         "get unresolved": get_unresolved_incidents,
         "get incident": lambda: get_incident(message_arr[3]),
         "update incident": lambda: update_incident(message_arr[3], message_arr[4], " ".join(message_arr[5:])),
+        "help": get_help,
     }
 
     if command in commands:
@@ -89,7 +90,19 @@ def check_allowed_trigger(incident_name, slack_user_id, message):
     
     return incident_name.startswith('incident') and slack_user_id in allowed_slack_users_id and message == key_string
     
-    
+def get_help():
+    return (
+        'Message shortcut:\n'
+        '`statuspage declare incident`:\n'
+        '\tenable `declare incident` shortcut on the message\n\n'
+        'Commands `@test-statuspage-bot <commands>`:\n'
+        '`get unresolved`:\n'
+        '\tget unresolved incidents\n'
+        '`get incident <incident id>`:\n'
+        '\tget info of an incident\n'
+        '`update incident <incident id> <status>`:\n'
+        '\tupdate the status of or resolve an incident`'
+    )
 
 if __name__ == "__main__":
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
