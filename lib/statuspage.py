@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
+from utils import * 
+
 load_dotenv()
 URL = 'https://api.statuspage.io/v1/pages/'
 API_KEY = os.getenv('STATUSPAGE_API_KEY')
@@ -29,15 +31,20 @@ def create_incident(name, status, body):
 
 def get_unresolved_incidents():
     target_url = f"{URL}{PAGE_ID}/incidents/unresolved"
+    table_data = []
+    table_data.append(['Incident Name', 'Status', 'Last Updated', 'Channel ID'])
     try:
         r = requests.get(target_url, headers=HEADERS)
         result = r.json()
         r.raise_for_status()
-        message = f"Total unresolved incidents: {len(result)}\n"
+        message = f"```\nTotal unresolved incidents: {len(result)}\n"
         if len(result) > 0:
-            message += "\t-Incident name- \t-Status- \t-Last updated- \t-Channel ID- \n"
+            # message += "\t-Incident name- \t-Status- \t-Last updated- \t-Channel ID- \n"
             for incident in result:
-                message += f"\n\t{incident['name']} \t{incident['status']} \t{convert_utc_to_gmt8(incident['updated_at'])} \t{incident['id']}"
+                table_data.append([incident['name'], incident['status'], convert_utc_to_gmt8(incident['updated_at']), incident['id']])
+                # message += f"\n\t{incident['name']} \t{incident['status']} \t{convert_utc_to_gmt8(incident['updated_at'])} \t{incident['id']}"
+            message += create_table(table_data)
+            message += "\n```"
     except requests.exceptions.RequestException as err:
         message = f"Operation failed: {err}"
     return message
