@@ -87,9 +87,3 @@ def update_incident(incident_id, status, body):
     except requests.exceptions.RequestException as err:
         message = f"Operation failed: {err}"
     return message
-
-def convert_utc_to_gmt8(utc_datetime):
-    utc_time = datetime.strptime(utc_datetime, "%Y-%m-%dT%H:%M:%SZ")
-    gmt_plus_8_time = utc_time + timedelta(hours=8)
-    gmt_plus_8_time_str = gmt_plus_8_time.strftime("%Y-%m-%d %H:%M:%S")
-    return gmt_plus_8_time_str
