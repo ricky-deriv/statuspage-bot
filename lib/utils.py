@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 def create_table(data):
     # Determine the maximum width for each column
     col_widths = [max(len(str(item)) for item in col) for col in zip(*data)]
