@@ -1,5 +1,6 @@
 import requests
 import os
+import json
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
@@ -11,13 +12,19 @@ API_KEY = os.getenv('STATUSPAGE_API_KEY')
 PAGE_ID = os.getenv('STATUSPAGE_PAGE_ID')
 HEADERS = {'Authorization': f"OAuth {API_KEY}"}
 
-def create_incident(name, status, body):
+# todo: add search incident id based on metadata.slack.channel_id
+# allow update operation only if metadata channel id matches the slack request from channel_id
+# this to remove using incident id as identifier
+
+def create_incident(name, status, channel_id, body):
     target_url = f"{URL}{PAGE_ID}/incidents"
+    metadata = {"slack": {"channel_id": channel_id}  }
     data = {
         "incident": {
             "name": name,
             "status": status,
-            "body": body
+            "body": body,
+            "metadata": metadata
         }  
     }
     try:
@@ -32,19 +39,16 @@ def create_incident(name, status, body):
 def get_unresolved_incidents():
     target_url = f"{URL}{PAGE_ID}/incidents/unresolved"
     table_data = []
-    table_data.append(['Incident Name', 'Status', 'Last Updated', 'Channel ID'])
+    table_data.append(['Incident Name', 'Status', 'Last Updated', 'Channel ID', 'Slack channel id'])
     try:
         r = requests.get(target_url, headers=HEADERS)
         result = r.json()
         r.raise_for_status()
-        message = f"```\nTotal unresolved incidents: {len(result)}\n"
+        message = f"Total unresolved incidents: {len(result)}\n"
         if len(result) > 0:
-            # message += "\t-Incident name- \t-Status- \t-Last updated- \t-Channel ID- \n"
             for incident in result:
-                table_data.append([incident['name'], incident['status'], convert_utc_to_gmt8(incident['updated_at']), incident['id']])
-                # message += f"\n\t{incident['name']} \t{incident['status']} \t{convert_utc_to_gmt8(incident['updated_at'])} \t{incident['id']}"
+                table_data.append([incident['name'], incident['status'], convert_utc_to_gmt8(incident['updated_at']), incident['id'], incident['metadata']['slack']['channel_id']])
             message += create_table(table_data)
-            message += "\n```"
     except requests.exceptions.RequestException as err:
         message = f"Operation failed: {err}"
     return message
