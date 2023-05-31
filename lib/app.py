@@ -92,7 +92,7 @@ def check_allowed_trigger(incident_name, slack_user_id, message):
         - in the allowed user list
         - message contains the keywords
     """
-    allowed_slack_users_id = {'U056F2PDN3G'}
+    allowed_slack_users_id = {'U056F2PDN3G', 'U05A1LL0BFY'}
     key_string = 'Declaring incident enabled. Use `declare incident` shortcut on this message to declare on status page.'
     
     return incident_name.startswith('incident') and slack_user_id in allowed_slack_users_id and message == key_string
