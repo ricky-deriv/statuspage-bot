@@ -12,6 +12,7 @@ SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
 
 # global arrays
 INCIDENT_STATUSES = ['investigating', 'identified', 'monitoring', 'resolved', 'scheduled', 'in_progress', 'verifying', 'completed']
+IMPACTS = ['none', 'maintenance', 'minor', 'major', 'critical']
 
 app = App(token=SLACK_BOT_TOKEN)
 
@@ -59,6 +60,14 @@ def declare_incident(ack, shortcut, client):
                     }
                     for status in INCIDENT_STATUSES
                 ])
+            elif accessory and accessory.get('action_id') == 'select_impact':
+                block['accessory']['options'].extend([
+                    {
+                        "text": {"type": "plain_text", "text": impact},
+                        "value": impact
+                    }
+                    for impact in IMPACTS
+                ])
         # send the form
         client.views_open(
             trigger_id=shortcut["trigger_id"],
@@ -79,10 +88,11 @@ def post_incident(ack, body, client, view, say):
     
     incident_name = state_values["incident_name_input"]["incident_name_input"]["value"]
     incident_status = state_values["static_select_action"]["static_select_action"]["selected_option"]["text"]["text"]
+    incident_impact = state_values["select_impact"]["select_impact"]["selected_option"]["text"]["text"]
     incident_description = state_values["description_input"]["description_input"]["value"]
     channel_id = view["private_metadata"]
     
-    output = create_incident(incident_name, incident_status, channel_id, incident_description)
+    output = create_incident(incident_name, incident_status, incident_impact, channel_id, incident_description)
     say(output['error'] if len(output['error']) > 0 else output['message'], channel=channel_id)
 
 def check_allowed_trigger(incident_name, slack_user_id, message):

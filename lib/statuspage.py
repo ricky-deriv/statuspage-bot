@@ -11,7 +11,7 @@ API_KEY = os.getenv('STATUSPAGE_API_KEY')
 PAGE_ID = os.getenv('STATUSPAGE_PAGE_ID')
 HEADERS = {'Authorization': f"OAuth {API_KEY}"}
 
-def create_incident(name, status, channel_id, body):
+def create_incident(name, status, impact, channel_id, body):
     output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents"
     metadata = {"slack": {"channel_id": channel_id}  }
@@ -20,14 +20,15 @@ def create_incident(name, status, channel_id, body):
             "name": name,
             "status": status,
             "body": body,
-            "metadata": metadata
+            "metadata": metadata,
+            "impact_override": impact
         }  
     }
     try:
         r = requests.post(target_url, headers=HEADERS, json=data)
         result = r.json()
         r.raise_for_status()
-        output['message'] = f"Incident `{result['name']}` is created. \nstatus: {result['status']}"
+        output['message'] = f"Incident `{result['name']}` is created. \nstatus: {result['status']} \nimpact: {result['impact']}"
     except requests.exceptions.RequestException as err:
         output['error'] = f"Operation failed: {err}"
     return output
@@ -61,8 +62,9 @@ def get_incident(incident_id):
         r.raise_for_status()
         message = ( f"Incident: {result['name']}"
                     f"\n\tstatus: {result['status']}"
+                    f"\n\timpact: {result['impact']}"
                     f"\n\tcreated at: {convert_utc_to_gmt8(result['created_at'])}"
-                    f"\n\tupdated at: {convert_utc_to_gmt8(result['updated_at'])}")
+                    f"\n\tupdated at: {convert_utc_to_gmt8(result['updated_at'])}" )
         components = result.get('components', [])
         for component in components:
             message += f"\n\t\tcomponent: {component['name']} -> {component['status']}"

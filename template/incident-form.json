@@ -28,6 +28,17 @@
             }
         },
         {
+            "type": "section",
+            "block_id": "select_impact",
+            "text": {"type": "mrkdwn", "text": "Incident impact:"},
+            "accessory": {
+                "type": "static_select",
+                "placeholder": {"type": "plain_text", "text": "Impact"},
+                "options": [],
+                "action_id": "select_impact"
+            }
+        },
+        {
             "type": "input",
             "block_id": "description_input",
             "element": {"type": "plain_text_input", "action_id": "description_input", "multiline": true },
