@@ -105,9 +105,9 @@ def get_help():
         'Commands `@test-statuspage-bot <commands>`:\n'
         '`get unresolved`:\n'
         '\tget unresolved incidents\n'
-        '`get incident <incident id>`:\n'
+        '`get incident`:\n'
         '\tget info of an incident\n'
-        '`update incident <incident id> <status>`:\n'
+        '`update incident <status> [description]`:\n'
         '\tupdate the status of or resolve an incident`'
     )
 
