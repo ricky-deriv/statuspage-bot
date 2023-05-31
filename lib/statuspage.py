@@ -31,7 +31,7 @@ def create_incident(name, status, channel_id, body):
         r = requests.post(target_url, headers=HEADERS, json=data)
         result = r.json()
         r.raise_for_status()
-        output['message'] = f"Incident {result['id']}: {result['name']} is created. \nstatus: {result['status']}"
+        output['message'] = f"Incident `{result['name']}` is created. \nstatus: {result['status']}"
     except requests.exceptions.RequestException as err:
         output['error'] = f"Operation failed: {err}"
     return output
@@ -40,15 +40,15 @@ def get_unresolved_incidents():
     output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents/unresolved"
     table_data = []
-    table_data.append(['Incident Name', 'Status', 'Last Updated', 'Channel ID', 'Slack channel id'])
+    table_data.append(['Incident ID', 'Incident Name', 'Status', 'Last Updated'])
     try:
         r = requests.get(target_url, headers=HEADERS)
         result = r.json()
         r.raise_for_status()
-        message = f"Total unresolved incidents: {len(result)}\n"
+        message = f"Total unresolved incidents: {len(result)}"
         if len(result) > 0:
             for incident in result:
-                table_data.append([incident['name'], incident['status'], convert_utc_to_gmt8(incident['updated_at']), incident['id'], incident['metadata']['slack']['channel_id']])
+                table_data.append([incident['id'], incident['name'], incident['status'], convert_utc_to_gmt8(incident['updated_at'])])
             message += create_table(table_data)
         output['message'] = message
         output['data'] = result

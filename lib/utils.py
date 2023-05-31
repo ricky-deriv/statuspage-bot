@@ -11,7 +11,7 @@ def create_table(data):
     for row in data[1:]:
         row_line = '|'.join(str(item).ljust(width) for item, width in zip(row, col_widths))
         table_lines.append(row_line)
-    table = '\n'.join(table_lines)
+    table = '\n' + '\n'.join(table_lines)
     
     return table
 
