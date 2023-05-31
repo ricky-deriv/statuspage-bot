@@ -11,10 +11,6 @@ API_KEY = os.getenv('STATUSPAGE_API_KEY')
 PAGE_ID = os.getenv('STATUSPAGE_PAGE_ID')
 HEADERS = {'Authorization': f"OAuth {API_KEY}"}
 
-# todo: add search incident id based on metadata.slack.channel_id
-# allow update operation only if metadata channel id matches the slack request from channel_id
-# this to remove using incident id as identifier
-
 def create_incident(name, status, channel_id, body):
     output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents"
