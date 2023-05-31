@@ -2,7 +2,6 @@ import requests
 import os
 import json
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
 
 from utils import * 
 
@@ -17,6 +16,7 @@ HEADERS = {'Authorization': f"OAuth {API_KEY}"}
 # this to remove using incident id as identifier
 
 def create_incident(name, status, channel_id, body):
+    output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents"
     metadata = {"slack": {"channel_id": channel_id}  }
     data = {
@@ -31,12 +31,13 @@ def create_incident(name, status, channel_id, body):
         r = requests.post(target_url, headers=HEADERS, json=data)
         result = r.json()
         r.raise_for_status()
-        message = f"Incident {result['id']}: {result['name']} is created. \nstatus: {result['status']}"
+        output['message'] = f"Incident {result['id']}: {result['name']} is created. \nstatus: {result['status']}"
     except requests.exceptions.RequestException as err:
-        message = f"Operation failed: {err}"
-    return message
+        output['error'] = f"Operation failed: {err}"
+    return output
 
 def get_unresolved_incidents():
+    output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents/unresolved"
     table_data = []
     table_data.append(['Incident Name', 'Status', 'Last Updated', 'Channel ID', 'Slack channel id'])
@@ -49,11 +50,14 @@ def get_unresolved_incidents():
             for incident in result:
                 table_data.append([incident['name'], incident['status'], convert_utc_to_gmt8(incident['updated_at']), incident['id'], incident['metadata']['slack']['channel_id']])
             message += create_table(table_data)
+        output['message'] = message
+        output['data'] = result
     except requests.exceptions.RequestException as err:
-        message = f"Operation failed: {err}"
-    return message
+        output['error'] = f"Operation failed: {err}"
+    return output
 
 def get_incident(incident_id):
+    output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents/{incident_id}"
     try:
         r = requests.get(target_url, headers=HEADERS)
@@ -66,11 +70,13 @@ def get_incident(incident_id):
         components = result.get('components', [])
         for component in components:
             message += f"\n\t\tcomponent: {component['name']} -> {component['status']}"
+        output['message'] = message
     except requests.exceptions.RequestException as err:
-        message = f"Operation failed: {err}"
-    return message
+        output['error'] = f"Operation failed: {err}"
+    return output
 
 def update_incident(incident_id, status, body):
+    output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents/{incident_id}"
     data = {
         "incident": {
@@ -84,6 +90,24 @@ def update_incident(incident_id, status, body):
         r.raise_for_status()
         message = ( f"Incident: {result['name']}"
                     f"\n\tstatus: {result['status']}")
+        output['message'] = message
     except requests.exceptions.RequestException as err:
-        message = f"Operation failed: {err}"
-    return message
+        output['error'] = f"Operation failed: {err}"
+    return output
+
+def get_unresolved_incident_id_by_channel_id(channel_id):
+    unresolved_incidents = get_unresolved_incidents()['data']
+    
+    for incident in unresolved_incidents:
+        if incident['metadata'].get('slack', {}).get('channel_id') == channel_id:
+            return incident['id']
+    
+    return "channel not linked to any incident"
+
+def get_incident_by_channel_id(channel_id):
+    incident_id = get_unresolved_incident_id_by_channel_id(channel_id)
+    return get_incident(incident_id)
+
+def update_incident_by_channel_id(channel_id, status, body):
+    incident_id = get_unresolved_incident_id_by_channel_id(channel_id)
+    return update_incident(incident_id, status, body)

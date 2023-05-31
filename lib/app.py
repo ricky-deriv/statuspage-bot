@@ -18,22 +18,23 @@ app = App(token=SLACK_BOT_TOKEN)
 @app.event("app_mention")
 def handle_app_mention_events(body, say, client):
     message_arr = body['event']['text'].split()
+    channel_id = body['event']['channel']
     command = " ".join(message_arr[1:3])
     
     commands = {
         "declare incident": enable_declare_incident,
         "get unresolved": get_unresolved_incidents,
-        "get incident": lambda: get_incident(message_arr[3]),
-        "update incident": lambda: update_incident(message_arr[3], message_arr[4], " ".join(message_arr[5:])),
+        "get incident": lambda: get_incident(message_arr[3]) if len(message_arr) > 3 else get_incident_by_channel_id(channel_id),
+        "update incident": lambda: update_incident_by_channel_id(channel_id, message_arr[3], " ".join(message_arr[4:])),
         "help": get_help,
     }
 
-    if command == "help":
+    if command == "help" or command == "declare incident":
         message = commands[command]()
         say(message)
     elif command in commands:
-        message = commands[command]()
-        say(f"```\n{message}\n```")
+        output = commands[command]()
+        say(f"```\n{output['error'] if len(output['error']) > 0 else output['message']}\n```")
     else:
         say(f"```command not found. use `help` to list commands.```")
 
@@ -81,8 +82,8 @@ def post_incident(ack, body, client, view, say):
     incident_description = state_values["description_input"]["description_input"]["value"]
     channel_id = view["private_metadata"]
     
-    message = create_incident(incident_name, incident_status, channel_id, incident_description)
-    say(message, channel=channel_id)
+    output = create_incident(incident_name, incident_status, channel_id, incident_description)
+    say(output['error'] if len(output['error']) > 0 else output['message'], channel=channel_id)
 
 def check_allowed_trigger(incident_name, slack_user_id, message):
     """
@@ -92,7 +93,7 @@ def check_allowed_trigger(incident_name, slack_user_id, message):
         - message contains the keywords
     """
     allowed_slack_users_id = {'U056F2PDN3G'}
-    key_string = '```\nDeclaring incident enabled. Use `declare incident` shortcut on this message to declare on status page.\n```'
+    key_string = 'Declaring incident enabled. Use `declare incident` shortcut on this message to declare on status page.'
     
     return incident_name.startswith('incident') and slack_user_id in allowed_slack_users_id and message == key_string
     
