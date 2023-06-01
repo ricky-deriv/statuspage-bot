@@ -109,3 +109,15 @@ def get_incident_by_channel_id(channel_id):
 def update_incident_by_channel_id(channel_id, status, body):
     incident_id = get_unresolved_incident_id_by_channel_id(channel_id)
     return update_incident(incident_id, status, body)
+
+def get_components():
+    output = {"error": "", "message": "", "data": ""}
+    target_url = f"{URL}{PAGE_ID}/components"
+    try:
+        r = requests.get(target_url, headers=HEADERS)
+        result = r.json()
+        r.raise_for_status()
+        output['data'] = result
+    except requests.exceptions.RequestException as err:
+        output['error'] = f"Operation failed: {err}"
+    return output
