@@ -143,7 +143,9 @@ def get_help():
         '`get incident`:\n'
         '\tget info of an incident\n'
         '`update incident <status> [description]`:\n'
-        '\tupdate the status of or resolve an incident`'
+        '\tupdate the status of or resolve an incident\n'
+        '`get components`:\n'
+        '\tget status of all components\n'
     )
 
 def enable_declare_incident():
