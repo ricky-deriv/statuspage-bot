@@ -101,6 +101,7 @@ def post_incident(ack, body, client, view, say):
     ack()
     state_values = view["state"]["values"]
     affected_components = {}
+    affected_components_id = []
     
     incident_name = state_values["incident_name_input"]["incident_name_input"]["value"]
     incident_status = state_values["select_status"]["select_status"]["selected_option"]["text"]["text"]
@@ -112,9 +113,10 @@ def post_incident(ack, body, client, view, say):
         if block_id.startswith("select_status_component"):
             component_id = block_id.split("_")[-1]
             if state_values[block_id][block_id]["selected_option"]: 
+                affected_components_id.append(component_id)
                 affected_components[component_id] = state_values[block_id][block_id]["selected_option"]["text"]["text"]
     
-    output = create_incident(incident_name, incident_status, incident_impact, channel_id, affected_components,incident_description)
+    output = create_incident(incident_name, incident_status, incident_impact, channel_id, affected_components_id, affected_components,incident_description)
     say(output['error'] if len(output['error']) > 0 else output['message'], channel=channel_id)
 
 def check_allowed_trigger(incident_name, slack_user_id, message):
