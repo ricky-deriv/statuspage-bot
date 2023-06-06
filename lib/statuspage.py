@@ -11,7 +11,7 @@ API_KEY = os.getenv('STATUSPAGE_API_KEY')
 PAGE_ID = os.getenv('STATUSPAGE_PAGE_ID')
 HEADERS = {'Authorization': f"OAuth {API_KEY}"}
 
-def create_incident(name, status, impact, channel_id, body):
+def create_incident(name, status, impact, channel_id, components, body):
     output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents"
     metadata = {"slack": {"channel_id": channel_id}  }
@@ -21,7 +21,8 @@ def create_incident(name, status, impact, channel_id, body):
             "status": status,
             "body": body,
             "metadata": metadata,
-            "impact_override": impact
+            "impact_override": impact,
+            "components": components
         }  
     }
     try:
@@ -74,6 +75,7 @@ def get_incident(incident_id):
     return output
 
 def update_incident(incident_id, status, body):
+    # resolve components too if incident is resolved
     output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents/{incident_id}"
     data = {

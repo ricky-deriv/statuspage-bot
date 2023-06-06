@@ -1,0 +1,39 @@
+{
+    "type": "input",
+    "optional": true,
+    "block_id": "select_status_component",
+    "element": {
+        "type": "static_select",
+        "placeholder": {
+            "type": "plain_text",
+            "text": "Select status"
+        },
+        "options": [
+            {
+                "text": {"type": "plain_text", "text": "operational"},
+                "value": "operational"
+            },
+            {
+                "text": {"type": "plain_text", "text": "under_maintenance"},
+                "value": "under_maintenance"
+            },
+            {
+                "text": {"type": "plain_text", "text": "degraded_performance"},
+                "value": "degraded_performance"
+            },
+            {
+                "text": {"type": "plain_text", "text": "partial_outage"},
+                "value": "partial_outage"
+            },
+            {
+                "text": {"type": "plain_text", "text": "major_outage"},
+                "value": "major_outage"
+            }
+        ],
+        "action_id": "select_status_component"
+    },
+    "label": {
+        "type": "plain_text",
+        "text": "Component Name"
+    }
+}

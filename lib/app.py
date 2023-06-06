@@ -1,5 +1,6 @@
 import os
 import json
+import copy
 from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -68,6 +69,20 @@ def declare_incident(ack, shortcut, client):
                     for impact in IMPACTS
                 ])
 
+        # add components option
+        components_result = get_components()
+        if components_result['error'] == '':
+            with open('template/component-status-select.json') as file:
+                component_status_select_template = json.load(file)
+            components = components_result['data']
+            for component in components:
+                identifier = component['id']
+                component_status_select = copy.deepcopy(component_status_select_template)
+                component_status_select['block_id'] += f"_{identifier}"
+                component_status_select['element']['action_id'] += f"_{identifier}"
+                component_status_select['label']['text'] = component['name']
+                form_create_incident['blocks'].append(component_status_select)
+
         # send the form
         client.views_open(
             trigger_id=shortcut["trigger_id"],
@@ -85,14 +100,21 @@ def declare_incident(ack, shortcut, client):
 def post_incident(ack, body, client, view, say):
     ack()
     state_values = view["state"]["values"]
+    affected_components = {}
     
     incident_name = state_values["incident_name_input"]["incident_name_input"]["value"]
     incident_status = state_values["select_status"]["select_status"]["selected_option"]["text"]["text"]
     incident_impact = state_values["select_impact"]["select_impact"]["selected_option"]["text"]["text"]
     incident_description = state_values["description_input"]["description_input"]["value"]
     channel_id = view["private_metadata"]
+    # get affected components
+    for block_id in state_values:
+        if block_id.startswith("select_status_component"):
+            component_id = block_id.split("_")[-1]
+            if state_values[block_id][block_id]["selected_option"]: 
+                affected_components[component_id] = state_values[block_id][block_id]["selected_option"]["text"]["text"]
     
-    output = create_incident(incident_name, incident_status, incident_impact, channel_id, incident_description)
+    output = create_incident(incident_name, incident_status, incident_impact, channel_id, affected_components,incident_description)
     say(output['error'] if len(output['error']) > 0 else output['message'], channel=channel_id)
 
 def check_allowed_trigger(incident_name, slack_user_id, message):
