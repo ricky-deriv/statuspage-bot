@@ -28,6 +28,7 @@ def handle_app_mention_events(body, say, client):
         "get unresolved": get_unresolved_incidents,
         "get incident": lambda: get_incident(message_arr[3]) if len(message_arr) > 3 else get_incident_by_channel_id(channel_id),
         "update incident": lambda: update_incident_by_channel_id(channel_id, message_arr[3], " ".join(message_arr[4:])),
+        "get components": get_components,
         "help": get_help,
     }
 
