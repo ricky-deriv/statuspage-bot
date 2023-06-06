@@ -49,25 +49,25 @@ def declare_incident(ack, shortcut, client):
     form_create_incident['private_metadata'] = channel_id
 
     if(check_allowed_trigger(shortcut['channel']['name'], shortcut['user']['id'], shortcut['message']['text'])):        
-         # Update the dropbox for incident status
+        # add options for incident status
         for block in form_create_incident['blocks']:
-            accessory = block.get('accessory')
-            if accessory and accessory.get('action_id') == 'static_select_action':
-                block['accessory']['options'].extend([
+            if block.get('block_id') == 'select_status':
+                block['element']['options'].extend([
                     {
                         "text": {"type": "plain_text", "text": status},
                         "value": status
                     }
                     for status in INCIDENT_STATUSES
                 ])
-            elif accessory and accessory.get('action_id') == 'select_impact':
-                block['accessory']['options'].extend([
+            elif block.get('block_id') == 'select_impact':
+                block['element']['options'].extend([
                     {
                         "text": {"type": "plain_text", "text": impact},
                         "value": impact
                     }
                     for impact in IMPACTS
                 ])
+
         # send the form
         client.views_open(
             trigger_id=shortcut["trigger_id"],
@@ -87,7 +87,7 @@ def post_incident(ack, body, client, view, say):
     state_values = view["state"]["values"]
     
     incident_name = state_values["incident_name_input"]["incident_name_input"]["value"]
-    incident_status = state_values["static_select_action"]["static_select_action"]["selected_option"]["text"]["text"]
+    incident_status = state_values["select_status"]["select_status"]["selected_option"]["text"]["text"]
     incident_impact = state_values["select_impact"]["select_impact"]["selected_option"]["text"]["text"]
     incident_description = state_values["description_input"]["description_input"]["value"]
     channel_id = view["private_metadata"]
