@@ -2,6 +2,7 @@ import requests
 import os
 import json
 from dotenv import load_dotenv
+from datetime import datetime
 
 from utils import * 
 
@@ -68,6 +69,16 @@ def get_incident(incident_id):
                     f"\n\tcreated at: {convert_utc_to_gmt8(result['created_at'])}"
                     f"\n\tupdated at: {convert_utc_to_gmt8(result['updated_at'])}" )
         components = result.get('components', [])
+        
+        # get description
+        latest_update = {}
+        for incident_update in result['incident_updates']:
+            created_at = datetime.fromisoformat(incident_update['created_at'].replace("Z", "+00:00"))
+            if not latest_update or created_at > datetime.fromisoformat(latest_update['created_at'].replace("Z", "+00:00")):
+                latest_update = incident_update
+        description = latest_update.get('body', '')
+        message += f"\n\tdescription: {description}"
+
         for component in components:
             message += f"\n\t\tcomponent: {component['name']} -> {component['status']}"
         output['message'] = message
