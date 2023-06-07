@@ -126,3 +126,42 @@ def get_components():
     except requests.exceptions.RequestException as err:
         output['error'] = f"Operation failed: {err}"
     return output
+
+def get_component_by_name(component_name):
+    component_name = component_name.lower()
+    output = {"error": "", "message": "", "data": ""}
+    components_result = get_components()
+    if components_result['error']:
+        output['error'] = components_result['error']
+    else:
+        components = components_result['data']
+        # find component by name
+        for component in components:
+            if component['name'].lower() == component_name:
+                output['data'] = component
+                output['message'] = f"Component: {component['name']} -> {component['status']}"
+                break
+    return output
+
+
+def update_component_by_name(component_name, status):
+    output = {"error": "", "message": "", "data": ""}
+    component_result = get_component_by_name(component_name)
+    if component_result['data']:
+        component_id = component_result['data']['id']
+        target_url = f"{URL}{PAGE_ID}/components/{component_id}"
+        data = {
+            "component": {
+                "status": status
+            }  
+        }
+        try:
+            r = requests.put(target_url, headers=HEADERS, json=data)
+            result = r.json()
+            r.raise_for_status()
+            output['message'] = f"Component update: {result['name']} -> {result['status']}"
+        except requests.exceptions.RequestException as err:
+            output['error'] = f"Operation failed: {err}"
+    else:
+        output['error'] = component_result['error'] if component_result['error'] else f"Component {component_name} not found" 
+    return output

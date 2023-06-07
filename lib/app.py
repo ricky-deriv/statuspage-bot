@@ -29,6 +29,7 @@ def handle_app_mention_events(body, say, client):
         "get incident": lambda: get_incident(message_arr[3]) if len(message_arr) > 3 else get_incident_by_channel_id(channel_id),
         "update incident": lambda: update_incident_by_channel_id(channel_id, message_arr[3], " ".join(message_arr[4:])),
         "get components": get_components,
+        "update component": lambda: update_component_by_name(" ".join(message_arr[3:-1]), message_arr[-1]),
         "help": get_help,
     }
 
