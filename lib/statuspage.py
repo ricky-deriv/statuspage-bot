@@ -31,7 +31,7 @@ def create_incident(name, status, impact, channel_id, components_id, components,
         r = requests.post(target_url, headers=HEADERS, json=data)
         result = r.json()
         r.raise_for_status()
-        output['message'] = f"Incident `{result['name']}` is created. \nstatus: {result['status']} \nimpact: {result['impact']}"
+        output['message'] = get_incident(result['id'])['message']
     except requests.exceptions.RequestException as err:
         output['error'] = f"Operation failed: {err}"
     return output

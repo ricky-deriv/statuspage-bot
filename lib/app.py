@@ -119,7 +119,7 @@ def post_incident(ack, body, client, view, say):
                 affected_components[component_id] = state_values[block_id][block_id]["selected_option"]["text"]["text"]
     
     output = create_incident(incident_name, incident_status, incident_impact, channel_id, affected_components_id, affected_components,incident_description)
-    say(output['error'] if len(output['error']) > 0 else output['message'], channel=channel_id)
+    say(f"```\n{output['error'] if len(output['error']) > 0 else output['message']}\n```", channel=channel_id)
 
 def check_allowed_trigger(incident_name, slack_user_id, message):
     """
