@@ -187,3 +187,18 @@ def update_component_by_name(component_name, status):
     else:
         output['error'] = component_result['error'] if component_result['error'] else f"Component {component_name} not found" 
     return output
+
+# function to list available templates
+# outputs a list of templates (template name)
+
+# function to get details of a template
+# there's no api call to get a detail of a template
+# basically, calling the same list of templates to get details of a template
+
+# update create incident function
+"""
+    if there is a template-in-use,
+    -> get the template
+    -> custom the create incident request using the data from the template
+"""
+
