@@ -71,6 +71,7 @@ def get_incident(incident_id):
         for component in components:
             message += f"\n\t\tcomponent: {component['name']} -> {component['status']}"
         output['message'] = message
+        output['data'] = result
     except requests.exceptions.RequestException as err:
         output['error'] = f"Operation failed: {err}"
     return output
@@ -79,10 +80,20 @@ def update_incident(incident_id, status, body):
     # resolve components too if incident is resolved
     output = {"error": "", "message": "", "data": ""}
     target_url = f"{URL}{PAGE_ID}/incidents/{incident_id}"
+    components_to_update = {}
+
+    # resolve components if resolving incident
+    if status == "resolved":
+        incident = get_incident(incident_id)['data']
+        components = incident.get('components', [])
+        component_ids = [component['id'] for component in components]
+        for component_id in component_ids:
+            components_to_update[component_id] = "operational"
     data = {
         "incident": {
             "status": status,
-            "body": body
+            "body": body,
+            "components": components_to_update
         }  
     }
     try:

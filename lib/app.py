@@ -146,9 +146,11 @@ def get_help():
         '`get incident`:\n'
         '\tget info of an incident\n'
         '`update incident <status> [description]`:\n'
-        '\tupdate the status of or resolve an incident\n'
+        '\tupdate the status of or resolve an incident. Resolving an incident resolves the affected components too.\n'
         '`get components`:\n'
         '\tget status of all components\n'
+        '`update component <name> <status>`:\n'
+        '\tupdate the status of a component. status can be `operational`, `degraded_performance`, `partial_outage`, `major_outage`, `under_maintenance`. the name of component is not case sensitive.\n'
     )
 
 def enable_declare_incident():
