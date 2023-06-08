@@ -152,6 +152,8 @@ def get_help():
         '\tget status of all components\n'
         '`update component <name> <status>`:\n'
         '\tupdate the status of a component. status can be `operational`, `degraded_performance`, `partial_outage`, `major_outage`, `under_maintenance`. the name of component is not case sensitive.\n'
+        '`get templates`:\n'
+        '\tget all incident templates\' name and title\n'
     )
 
 def enable_declare_incident():
