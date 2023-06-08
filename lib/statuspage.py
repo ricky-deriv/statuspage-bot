@@ -190,6 +190,21 @@ def update_component_by_name(component_name, status):
 
 # function to list available templates
 # outputs a list of templates (template name)
+def get_templates():
+    output = {"error": "", "message": "", "data": ""}
+    target_url = f"{URL}{PAGE_ID}/incident_templates"
+    output['message'] = "Available templates:"
+    try:
+        r = requests.get(target_url, headers=HEADERS)
+        result = r.json()
+        r.raise_for_status()
+        output['data'] = result
+        for template in result:
+            output['message'] += f"\n- {template['name']}"
+            output['message'] += f"\n\ttitle: {template['title']}"
+    except requests.exceptions.RequestException as err:
+        output['error'] = f"Operation failed: {err}"
+    return output
 
 # function to get details of a template
 # there's no api call to get a detail of a template

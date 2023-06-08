@@ -30,6 +30,7 @@ def handle_app_mention_events(body, say, client):
         "update incident": lambda: update_incident_by_channel_id(channel_id, message_arr[3], " ".join(message_arr[4:])),
         "get components": get_components,
         "update component": lambda: update_component_by_name(" ".join(message_arr[3:-1]), message_arr[-1]),
+        "get templates": get_templates,
         "help": get_help,
     }
 
