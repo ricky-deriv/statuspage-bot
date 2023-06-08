@@ -209,6 +209,27 @@ def get_templates():
 # function to get details of a template
 # there's no api call to get a detail of a template
 # basically, calling the same list of templates to get details of a template
+def get_template(template_name):
+    output = {"error": "", "message": "", "data": ""}
+    templates = get_templates()
+
+    if not templates['error']:
+        for template in templates['data']:
+            if template['name'].lower() == template_name.lower():
+                output['data'] = template
+                output['message'] = f"Template: {template['name']}"
+                output['message'] += f"\n\ttitle: {template['title']}"
+                output['message'] += f"\n\tstatus: {template['update_status']}"
+                output['message'] += f"\n\tdescription: {template['body']}"
+                for component in template['components']:
+                    output['message'] += f"\n\t\tcomponent: {component['name']} -> {component['status']}"
+                break
+        if not output['data']:
+            output['error'] = f"Template {template_name} not found"
+    else:
+        output['error'] = templates['error']
+    return output
+    
 
 # update create incident function
 """

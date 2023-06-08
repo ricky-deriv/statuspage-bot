@@ -31,6 +31,7 @@ def handle_app_mention_events(body, say, client):
         "get components": get_components,
         "update component": lambda: update_component_by_name(" ".join(message_arr[3:-1]), message_arr[-1]),
         "get templates": get_templates,
+        "get template": lambda: get_template(" ".join(message_arr[3:])),
         "help": get_help,
     }
 
@@ -154,6 +155,8 @@ def get_help():
         '\tupdate the status of a component. status can be `operational`, `degraded_performance`, `partial_outage`, `major_outage`, `under_maintenance`. the name of component is not case sensitive.\n'
         '`get templates`:\n'
         '\tget all incident templates\' name and title\n'
+        '`get template <name>`:\n'
+        '\tget the details of the incident template. The name of template is not case sensitive.\n'
     )
 
 def enable_declare_incident():
