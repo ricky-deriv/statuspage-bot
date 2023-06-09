@@ -53,52 +53,13 @@ def declare_incident(ack, shortcut, client):
         form_create_incident = json.load(file)
     form_create_incident['private_metadata'] = channel_id
 
-    if(check_allowed_trigger(shortcut['channel']['name'], shortcut['user']['id'], shortcut['message']['text'])):        
-        # add options for incident status
-        for block in form_create_incident['blocks']:
-            if block.get('block_id') == 'select_status':
-                block['element']['options'].extend([
-                    {
-                        "text": {"type": "plain_text", "text": status},
-                        "value": status
-                    }
-                    for status in INCIDENT_STATUSES
-                ])
-            elif block.get('block_id') == 'select_impact':
-                block['element']['options'].extend([
-                    {
-                        "text": {"type": "plain_text", "text": impact},
-                        "value": impact
-                    }
-                    for impact in IMPACTS
-                ])
-
-        # add components option
-        components_result = get_components()
-        if components_result['error'] == '':
-            with open('template/component-status-select.json') as file:
-                component_status_select_template = json.load(file)
-            components = components_result['data']
-            for component in components:
-                identifier = component['id']
-                component_status_select = copy.deepcopy(component_status_select_template)
-                component_status_select['block_id'] += f"_{identifier}"
-                component_status_select['element']['action_id'] += f"_{identifier}"
-                component_status_select['label']['text'] = component['name']
-                form_create_incident['blocks'].append(component_status_select)
-
-        # send the form
-        client.views_open(
-            trigger_id=shortcut["trigger_id"],
-            view=form_create_incident
-        )
+    if(check_allowed_trigger(shortcut['channel']['name'], shortcut['user']['id'], shortcut['message']['text'])):    
+        form_create_incident = add_inputs_incident_form(form_create_incident)
+        client.views_open(trigger_id=shortcut["trigger_id"], view=form_create_incident)
     else:
         with open('template/not-allowed.json') as file:
             not_allowed = json.load(file)
-        client.views_open(
-            trigger_id=shortcut["trigger_id"],
-            view=not_allowed
-        )
+        client.views_open(trigger_id=shortcut["trigger_id"], view=not_allowed)
 
 @app.view("form_create_incident")
 def post_incident(ack, body, client, view, say):
@@ -161,6 +122,42 @@ def get_help():
 
 def enable_declare_incident():
     return 'Declaring incident enabled. Use `declare incident` shortcut on this message to declare on status page.'
+
+def add_inputs_incident_form(form_create_incident):
+    for block in form_create_incident['blocks']:
+        # add status options
+        if block.get('block_id') == 'select_status':
+            block['element']['options'].extend([
+                {
+                    "text": {"type": "plain_text", "text": status},
+                    "value": status
+                }
+                for status in INCIDENT_STATUSES
+            ])
+        # add impact options
+        elif block.get('block_id') == 'select_impact':
+            block['element']['options'].extend([
+                {
+                    "text": {"type": "plain_text", "text": impact},
+                    "value": impact
+                }
+                for impact in IMPACTS
+            ])
+
+    # add components options
+    components_result = get_components()
+    if components_result['error'] == '':
+        with open('template/component-status-select.json') as file:
+            component_status_select_template = json.load(file)
+        components = components_result['data']
+        for component in components:
+            identifier = component['id']
+            component_status_select = copy.deepcopy(component_status_select_template)
+            component_status_select['block_id'] += f"_{identifier}"
+            component_status_select['element']['action_id'] += f"_{identifier}"
+            component_status_select['label']['text'] = component['name']
+            form_create_incident['blocks'].append(component_status_select)
+    return form_create_incident
 
 if __name__ == "__main__":
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
