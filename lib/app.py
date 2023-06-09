@@ -143,6 +143,18 @@ def add_inputs_incident_form(form_create_incident):
                 }
                 for impact in IMPACTS
             ])
+        # add template options
+        elif block.get('block_id') == 'select_template':
+            templates_result = get_templates()
+            if templates_result['error'] == '':
+                templates = templates_result['data']
+                block['accessory']['options'].extend([
+                    {
+                        "text": {"type": "plain_text", "text": template['name']},
+                        "value": template['name']
+                    }
+                    for template in templates
+                ])
 
     # add components options
     components_result = get_components()
@@ -156,7 +168,8 @@ def add_inputs_incident_form(form_create_incident):
             component_status_select['block_id'] += f"_{identifier}"
             component_status_select['element']['action_id'] += f"_{identifier}"
             component_status_select['label']['text'] = component['name']
-            form_create_incident['blocks'].append(component_status_select)
+            form_create_incident['blocks'].append(component_status_select) 
+        
     return form_create_incident
 
 if __name__ == "__main__":

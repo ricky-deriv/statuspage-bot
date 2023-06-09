@@ -11,6 +11,17 @@
             "elements": [{"type": "plain_text", "text": "Creating incident in Deriv Statuspage"}]
         },
         {
+			"type": "section",
+            "block_id": "select_template",
+			"text": {"type": "mrkdwn", "text": "Incident template"},
+			"accessory": {
+				"type": "static_select",
+				"placeholder": {"type": "plain_text", "text": "template"},
+				"options": [],
+				"action_id": "select_template"
+			}
+        },
+        {
             "type": "input",
             "block_id": "incident_name_input",
             "element": {"type": "plain_text_input", "action_id": "incident_name_input"},
