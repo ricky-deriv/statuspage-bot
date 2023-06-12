@@ -24,7 +24,7 @@ def handle_app_mention_events(body, say, client):
     command = " ".join(message_arr[1:3])
     
     commands = {
-        "declare incident": enable_declare_incident,
+        "declare incident": lambda: enable_declare_incident(channel_id),
         "get unresolved": get_unresolved_incidents,
         "get incident": lambda: get_incident(message_arr[3]) if len(message_arr) > 3 else get_incident_by_channel_id(channel_id),
         "update incident": lambda: update_incident_by_channel_id(channel_id, message_arr[3], " ".join(message_arr[4:])),
@@ -53,12 +53,16 @@ def declare_incident(ack, shortcut, client):
         form_create_incident = json.load(file)
     form_create_incident['private_metadata'] = channel_id
 
-    if(check_allowed_trigger(shortcut['channel']['name'], shortcut['user']['id'], shortcut['message']['text'])):    
+    if(check_allowed_trigger(shortcut['channel']['name'], shortcut['user']['id'], shortcut['message']['text']) and not check_channel_has_incident_attached(channel_id)):    
         form_create_incident = add_inputs_incident_form(form_create_incident)
         client.views_open(trigger_id=shortcut["trigger_id"], view=form_create_incident)
     else:
         with open('template/not-allowed.json') as file:
             not_allowed = json.load(file)
+        if check_channel_has_incident_attached(channel_id):
+            for block in not_allowed['blocks']:
+                if block['block_id'] == 'text_message':
+                    block['text']['text'] += '\nThis channel is attached to an unresolved incident.\nUse another channel to declare the incident or resolve the incident in this channel.'
         client.views_open(trigger_id=shortcut["trigger_id"], view=not_allowed)
 
 @app.view("form_create_incident")
@@ -176,8 +180,16 @@ def get_help():
         '\tget the details of the incident template. The name of template is not case sensitive.\n'
     )
 
-def enable_declare_incident():
+def enable_declare_incident(channel_id):
+    # check if an unresolved incident is attached to this channel
+    if check_channel_has_incident_attached(channel_id):
+        return 'Declaring incident `rejected`. This channel is attached to an unresolved incident.\nUse another channel to declare the incident or resolve the incident in this channel.'
     return 'Declaring incident enabled. Use `declare incident` shortcut on this message to declare on status page.'
+
+def check_channel_has_incident_attached(channel_id):
+    unresolved_incidents = get_unresolved_incidents()
+    return any(incident['metadata'].get('slack', {}).get('channel_id', "") == channel_id for incident in unresolved_incidents.get('data', []))
+
 
 def add_inputs_incident_form(form_create_incident):
     for block in form_create_incident['blocks']:
