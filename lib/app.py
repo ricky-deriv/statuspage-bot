@@ -67,11 +67,24 @@ def post_incident(ack, body, client, view, say):
     state_values = view["state"]["values"]
     affected_components = {}
     affected_components_id = []
-    
+
     incident_name = state_values["incident_name_input"]["incident_name_input"]["value"]
-    incident_status = state_values["select_status"]["select_status"]["selected_option"]["text"]["text"]
-    incident_impact = state_values["select_impact"]["select_impact"]["selected_option"]["text"]["text"]
+    incident_status = state_values["select_status"]["select_status"]["selected_option"]
     incident_description = state_values["description_input"]["description_input"]["value"]
+
+    if incident_status:
+        incident_status = state_values["select_status"]["select_status"]["selected_option"]["text"]["text"]
+    if not (incident_name and incident_status and incident_description):
+        blocks = view['blocks']
+        for block in blocks:
+            if block['block_id'] == 'incident_name_input' and not incident_name:
+                incident_name = block['element']['initial_value']
+            elif block['block_id'] == 'select_status' and not incident_status:
+                incident_status = block['element']['initial_option']['value']
+            elif block['block_id'] == 'description_input' and not incident_description:
+                incident_description = block['element']['initial_value']
+
+    incident_impact = state_values["select_impact"]["select_impact"]["selected_option"]["text"]["text"]
     channel_id = view["private_metadata"]
     # get affected components
     for block_id in state_values:
@@ -83,6 +96,49 @@ def post_incident(ack, body, client, view, say):
     
     output = create_incident(incident_name, incident_status, incident_impact, channel_id, affected_components_id, affected_components,incident_description)
     say(f"```\n{output['error'] if len(output['error']) > 0 else output['message']}\n```", channel=channel_id)
+
+@app.action("select_template")
+def update_form_on_template(ack, body, client):
+    ack()
+    
+    with open('template/incident-form.json') as file:
+        form_create_incident = json.load(file)
+    form_create_incident['blocks'] = body['view']['blocks']
+    form_create_incident['private_metadata'] = body['view']['private_metadata']
+
+    # update modal with data from template
+    selected_template_name = body['actions'][0]['selected_option']['value']
+    template = get_template(selected_template_name)
+    if not template['error']:
+        template = template['data']
+        for block in form_create_incident['blocks']:
+            # update incident name
+            if block['block_id'] == 'incident_name_input':
+                block['element']['initial_value'] = template['name']
+            elif block['block_id'] == 'select_status':
+                # update incident status
+                # set default menu option
+                for option in block['element']['options']:
+                    if option['value'] == template['update_status']:
+                        block['element']['initial_option'] = option
+                        break
+            elif block['block_id'] == 'description_input':
+                # update incident description
+                block['element']['initial_value'] = template['body']            
+            elif block['block_id'].startswith('select_status_component'):
+                # update affected components
+                for component in template['components']:
+                    if block['block_id'].split("_")[-1] == component['id']:
+                        for option in block['element']['options']:
+                            if option['value'] == component['status']:
+                                block['element']['initial_option'] = option
+                                break
+    
+    client.views_update(
+        view_id=body['view']['id'],
+        hash=body['view']['hash'],
+        view=form_create_incident
+    )
 
 def check_allowed_trigger(incident_name, slack_user_id, message):
     """

@@ -229,12 +229,3 @@ def get_template(template_name):
     else:
         output['error'] = templates['error']
     return output
-    
-
-# update create incident function
-"""
-    if there is a template-in-use,
-    -> get the template
-    -> custom the create incident request using the data from the template
-"""
-
