@@ -167,7 +167,7 @@ def get_help():
         '`get incident`:\n'
         '\tget info of an incident\n'
         '`update incident <status> [description]`:\n'
-        '\tupdate the status of or resolve an incident. Resolving an incident resolves the affected components too.\n'
+        '\tupdate the status of or resolve an incident. Resolving an incident resolves the affected components too. status: `investigating`, `identified`, `monitoring`, `resolved`\n'
         '`get components`:\n'
         '\tget status of all components\n'
         '`update component <name> <status>`:\n'
