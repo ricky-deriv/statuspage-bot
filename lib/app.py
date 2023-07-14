@@ -10,6 +10,7 @@ from statuspage import *
 load_dotenv()
 SLACK_APP_TOKEN = os.getenv('SLACK_APP_TOKEN')
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
+SLACK_ALLOWED_IDS = os.getenv('SLACK_USER_IDS').split(',')
 
 # global arrays
 INCIDENT_STATUSES = ['investigating', 'identified', 'monitoring', 'resolved', 'scheduled', 'in_progress', 'verifying', 'completed']
@@ -151,12 +152,9 @@ def check_allowed_trigger(incident_name, slack_user_id, message):
         - in the allowed user list
         - message contains the keywords
     """
-    with open('lib/.allowed_ids.json') as file:
-        allowed_slack_users = json.load(file)
-    allowed_slack_users_id = set(allowed_slack_users.values())
     key_string = 'Declaring incident enabled. Use `declare incident` shortcut on this message to declare on status page.'
     
-    return incident_name.startswith('incident') and slack_user_id in allowed_slack_users_id and message == key_string
+    return incident_name.startswith('incident') and slack_user_id in SLACK_ALLOWED_IDS and message == key_string
     
 def get_help():
     return (
